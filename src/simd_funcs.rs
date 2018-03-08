@@ -87,6 +87,9 @@ cfg_if! {
         use stdsimd::arch::x86::__m128i;
         use stdsimd::arch::x86::_mm_movemask_epi8;
         use stdsimd::arch::x86::_mm_packus_epi16;
+    } else if #[cfg(target_arch = "aarch64")]{
+        use stdsimd::arch::aarch64::vmaxvq_u8;
+        use stdsimd::arch::aarch64::vmaxvq_u16;
     } else {
 
     }
@@ -120,14 +123,10 @@ cfg_if! {
             }
         }
     } else if #[cfg(target_arch = "aarch64")]{
-        extern "platform-intrinsic" {
-            fn aarch64_vmaxvq_u8(x: u8x16) -> u8;
-        }
-
         #[inline(always)]
         pub fn simd_is_ascii(s: u8x16) -> bool {
             unsafe {
-                aarch64_vmaxvq_u8(s) < 0x80
+                vmaxvq_u8(s) < 0x80
             }
         }
     } else {
@@ -153,7 +152,7 @@ cfg_if! {
         #[inline(always)]
         pub fn simd_is_str_latin1(s: u8x16) -> bool {
             unsafe {
-                aarch64_vmaxvq_u8(s) < 0xC4
+                vmaxvq_u8(s) < 0xC4
             }
         }
     } else {
@@ -167,21 +166,17 @@ cfg_if! {
 
 cfg_if! {
     if #[cfg(target_arch = "aarch64")]{
-        extern "platform-intrinsic" {
-            fn aarch64_vmaxvq_u16(x: u16x8) -> u16;
-        }
-
         #[inline(always)]
         pub fn simd_is_basic_latin(s: u16x8) -> bool {
             unsafe {
-                aarch64_vmaxvq_u16(s) < 0x80
+                vmaxvq_u16(s) < 0x80
             }
         }
 
         #[inline(always)]
         pub fn simd_is_latin1(s: u16x8) -> bool {
             unsafe {
-                aarch64_vmaxvq_u16(s) < 0x100
+                vmaxvq_u16(s) < 0x100
             }
         }
     } else {
