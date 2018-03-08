@@ -79,21 +79,29 @@ extern "platform-intrinsic" {
 }
 
 cfg_if! {
-    if #[cfg(target_feature = "sse2")] {
+    if #[cfg(all(target_feature = "sse2", target_arch = "x86_64"))] {
+        use stdsimd::arch::x86_64::__m128i;
+        use stdsimd::arch::x86_64::_mm_movemask_epi8;
+        use stdsimd::arch::x86_64::_mm_packus_epi16;
+    } else if #[cfg(all(target_feature = "sse2", target_arch = "x86"))] {
+        use stdsimd::arch::x86::__m128i;
+        use stdsimd::arch::x86::_mm_movemask_epi8;
+        use stdsimd::arch::x86::_mm_packus_epi16;
+    } else {
 
-        use stdsimd::simd::i16x8;
-        use stdsimd::simd::i8x16;
-        extern "platform-intrinsic" {
-            fn x86_mm_movemask_epi8(x: i8x16) -> i32;
-        }
+    }
+}
+
+cfg_if! {
+    if #[cfg(target_feature = "sse2")] {
 
         // Expose low-level mask instead of higher-level conclusion,
         // because the non-ASCII case would perform less well otherwise.
         #[inline(always)]
         pub fn mask_ascii(s: u8x16) -> i32 {
             unsafe {
-                let signed: i8x16 = ::std::mem::transmute_copy(&s);
-                x86_mm_movemask_epi8(signed)
+                let vendor: __m128i = ::std::mem::transmute_copy(&s);
+                _mm_movemask_epi8(vendor)
             }
         }
 
@@ -107,8 +115,8 @@ cfg_if! {
         #[inline(always)]
         pub fn simd_is_ascii(s: u8x16) -> bool {
             unsafe {
-                let signed: i8x16 = ::std::mem::transmute_copy(&s);
-                x86_mm_movemask_epi8(signed) == 0
+                let vendor: __m128i = ::std::mem::transmute_copy(&s);
+                _mm_movemask_epi8(vendor) == 0
             }
         }
     } else if #[cfg(target_arch = "aarch64")]{
@@ -287,16 +295,13 @@ pub fn simd_unpack(s: u8x16) -> (u16x8, u16x8) {
 
 cfg_if! {
     if #[cfg(target_feature = "sse2")] {
-        extern "platform-intrinsic" {
-            fn x86_mm_packus_epi16(x: i16x8, y: i16x8) -> u8x16;
-        }
-
         #[inline(always)]
         pub fn simd_pack(a: u16x8, b: u16x8) -> u8x16 {
             unsafe {
-                let first: i16x8 = ::std::mem::transmute_copy(&a);
-                let second: i16x8 = ::std::mem::transmute_copy(&b);
-                x86_mm_packus_epi16(first, second)
+                let first: __m128i = ::std::mem::transmute_copy(&a);
+                let second: __m128i = ::std::mem::transmute_copy(&b);
+                let vendor = _mm_packus_epi16(first, second);
+                ::std::mem::transmute_copy(&vendor)
             }
         }
     } else {
