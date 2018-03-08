@@ -7,9 +7,21 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use simd::u8x16;
-use simd::u16x8;
-use simd::Simd;
+use stdsimd::simd::u8x16;
+use stdsimd::simd::u16x8;
+
+/// Marker trait for use in shuffles
+trait Simd {
+    type Elem;
+}
+
+impl Simd for u8x16 {
+    type Elem = u8;
+}
+
+impl Simd for u16x8 {
+    type Elem = u16;
+}
 
 // TODO: Migrate unaligned access to stdlib code if/when the RFC
 // https://github.com/rust-lang/rfcs/pull/1725 is implemented.
@@ -69,8 +81,8 @@ extern "platform-intrinsic" {
 cfg_if! {
     if #[cfg(target_feature = "sse2")] {
 
-        use simd::i16x8;
-        use simd::i8x16;
+        use stdsimd::simd::i16x8;
+        use stdsimd::simd::i8x16;
         extern "platform-intrinsic" {
             fn x86_mm_movemask_epi8(x: i8x16) -> i32;
         }

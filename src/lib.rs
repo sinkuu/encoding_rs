@@ -496,14 +496,14 @@
 //! </table>
 
 #![cfg_attr(feature = "simd-accel",
-            feature(cfg_target_feature, platform_intrinsics, core_intrinsics))]
+            feature(cfg_target_feature, platform_intrinsics, core_intrinsics, stdsimd))]
 
 #[macro_use]
 extern crate cfg_if;
 
 #[cfg(all(feature = "simd-accel",
           any(target_feature = "sse2", all(target_endian = "little", target_arch = "aarch64"))))]
-extern crate simd;
+extern crate stdsimd;
 
 #[cfg(feature = "serde")]
 extern crate serde;
