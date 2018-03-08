@@ -15,15 +15,15 @@ categories = ["text-processing", "encoding", "web-programming", "email"]
 travis-ci = { repository = "hsivonen/encoding_rs" }
 
 [features]
-simd-accel = ["simd"]
+simd-accel = ["stdsimd"]
 no-static-ideograph-encoder-tables = []
 # parallel-utf8 = ["rayon"]
 
 [dependencies]
 cfg-if = "0.1.0"
-simd = { version = "0.2.0", optional = true }
 serde = { version = "1.0", optional = true }
 # rayon = { version = "0.8.0", optional = true }
+stdsimd = { path = "../stdsimd/crates/stdsimd", optional = true }
 
 [dev-dependencies]
 serde_derive = "1.0"
