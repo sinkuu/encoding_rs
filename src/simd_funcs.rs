@@ -209,7 +209,7 @@ cfg_if! {
         macro_rules! aarch64_return_false_if_below_hebrew {
             ($s:ident) => ({
                 unsafe {
-                    if aarch64_vmaxvq_u16($s) < 0x0590 {
+                    if vmaxvq_u16($s) < 0x0590 {
                         return false;
                     }
                 }
