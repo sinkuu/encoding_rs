@@ -19,7 +19,6 @@ cfg_if!{
         #[inline(always)]
         fn shift_upper(unpacked: u16x8) -> u16x8 {
             let highest_ascii = u16x8::splat(0x7F);
-            let offset = u16x8::splat(0xF700);
             unpacked + unpacked.gt(highest_ascii).select(u16x8::splat(0xF700), u16x8::splat(0))
         }
     } else {
