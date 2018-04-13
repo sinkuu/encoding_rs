@@ -22,7 +22,7 @@
 // different approaches based on benchmarking on Raspberry Pi 3.
 
 #[cfg(all(feature = "simd-accel",
-          any(target_feature = "sse2", all(target_endian = "little", target_arch = "aarch64"))))]
+          any(target_feature = "sse2", all(target_endian = "little", target_arch = "aarch64"), all(target_endian = "little", target_feature = "neon"))))]
 use simd_funcs::*;
 
 // `as` truncates, so works on 32-bit, too.
@@ -604,7 +604,7 @@ cfg_if! {
         ascii_simd_unalign!(basic_latin_to_ascii, u16, u8, basic_latin_to_ascii_stride_neither_aligned);
         latin1_simd_unalign!(unpack_latin1, u8, u16, unpack_stride_neither_aligned);
         latin1_simd_unalign!(pack_latin1, u16, u8, pack_stride_neither_aligned);
-    } else if #[cfg(all(feature = "simd-accel", target_feature = "sse2"))] {
+    } else if #[cfg(all(feature = "simd-accel", any(target_feature = "sse2"), all(target_endian = "little", target_feature = "neon")))] {
         // SIMD with different instructions for aligned and unaligned loads and stores.
         //
         // Newer microarchitectures are not supposed to have a performance difference between
@@ -881,7 +881,7 @@ cfg_if! {
             }
             None
         }
-    } else if #[cfg(all(feature = "simd-accel", target_feature = "sse2"))] {
+    } else if #[cfg(all(feature = "simd-accel", any(target_feature = "sse2"), all(target_endian = "little", target_feature = "neon")))] {
         #[inline(always)]
         pub fn validate_ascii(slice: &[u8]) -> Option<(u8, usize)> {
             let src = slice.as_ptr();
