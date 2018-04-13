@@ -88,6 +88,8 @@ cfg_if! {
         use stdsimd::arch::x86::_mm_movemask_epi8;
         use stdsimd::arch::x86::_mm_packus_epi16;
     } else if #[cfg(target_arch = "aarch64")]{
+        use stdsimd::arch::aarch64::uint8x16_t;
+        use stdsimd::arch::aarch64::uint16x8_t;
         use stdsimd::arch::aarch64::vmaxvq_u8;
         use stdsimd::arch::aarch64::vmaxvq_u16;
     } else {
@@ -126,7 +128,8 @@ cfg_if! {
         #[inline(always)]
         pub fn simd_is_ascii(s: u8x16) -> bool {
             unsafe {
-                vmaxvq_u8(s) < 0x80
+                let vendor: uint8x16_t = ::std::mem::transmute_copy(&s);
+                vmaxvq_u8(vendor) < 0x80
             }
         }
     } else {
@@ -152,7 +155,8 @@ cfg_if! {
         #[inline(always)]
         pub fn simd_is_str_latin1(s: u8x16) -> bool {
             unsafe {
-                vmaxvq_u8(s) < 0xC4
+                let vendor: uint8x16_t = ::std::mem::transmute_copy(&s);
+                vmaxvq_u8(vendor) < 0xC4
             }
         }
     } else {
@@ -169,14 +173,16 @@ cfg_if! {
         #[inline(always)]
         pub fn simd_is_basic_latin(s: u16x8) -> bool {
             unsafe {
-                vmaxvq_u16(s) < 0x80
+                let vendor: uint16x8_t = ::std::mem::transmute_copy(&s);
+                vmaxvq_u16(vendor) < 0x80
             }
         }
 
         #[inline(always)]
         pub fn simd_is_latin1(s: u16x8) -> bool {
             unsafe {
-                vmaxvq_u16(s) < 0x100
+                let vendor: uint16x8_t = ::std::mem::transmute_copy(&s);
+                vmaxvq_u16(vendor) < 0x100
             }
         }
     } else {
@@ -209,7 +215,8 @@ cfg_if! {
         macro_rules! aarch64_return_false_if_below_hebrew {
             ($s:ident) => ({
                 unsafe {
-                    if vmaxvq_u16($s) < 0x0590 {
+                    let vendor: uint16x8_t = ::std::mem::transmute_copy(&$s);
+                    if vmaxvq_u16(vendor) < 0x0590 {
                         return false;
                     }
                 }
