@@ -893,47 +893,6 @@ cfg_if! {
             }
             None
         }
-    } else if #[cfg(all(feature = "simd-accel", target_endian = "little", target_feature = "neon"))] {
-        #[inline(always)]
-        pub fn validate_ascii(slice: &[u8]) -> Option<(u8, usize)> {
-            let src = slice.as_ptr();
-            let len = slice.len();
-            let mut offset = 0usize;
-            if STRIDE_SIZE <= len {
-                let len_minus_stride = len - STRIDE_SIZE;
-                if ((src as usize) & ALIGNMENT_MASK) == 0 {
-                    loop {
-                        let simd = unsafe { load16_aligned(src.offset(offset as isize)) };
-                        if !simd_is_ascii(simd) {
-                            break;
-                        }
-                        offset += STRIDE_SIZE;
-                        if offset > len_minus_stride {
-                            break;
-                        }
-                    }
-                } else {
-                    loop {
-                        let simd = unsafe { load16_unaligned(src.offset(offset as isize)) };
-                        if !simd_is_ascii(simd) {
-                            break;
-                        }
-                        offset += STRIDE_SIZE;
-                        if offset > len_minus_stride {
-                            break;
-                        }
-                    }
-                }
-            }
-            while offset < len {
-                let code_unit = slice[offset];
-                if code_unit > 127 {
-                    return Some((code_unit, offset));
-                }
-                offset += 1;
-            }
-            None
-        }
     } else if #[cfg(all(feature = "simd-accel", target_feature = "sse2"))] {
         #[inline(always)]
         pub fn validate_ascii(slice: &[u8]) -> Option<(u8, usize)> {
