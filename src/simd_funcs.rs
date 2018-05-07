@@ -7,8 +7,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use stdsimd::simd::u8x16;
 use stdsimd::simd::u16x8;
+use stdsimd::simd::u8x16;
 
 /// Marker trait for use in shuffles
 trait Simd {
@@ -244,10 +244,10 @@ cfg_if! {
 }
 
 macro_rules! in_range16x8 {
-    ($s:ident, $start:expr, $end:expr) => ({
+    ($s:ident, $start:expr, $end:expr) => {{
         // SIMD sub is wrapping
         ($s - u16x8::splat($start)).lt(u16x8::splat($end - $start))
-    })
+    }};
 }
 
 #[inline(always)]
