@@ -21,6 +21,10 @@
 //! applications that need to be able to deal with legacy in-memory
 //! representations of Unicode.
 //!
+//! For expectation setting, please be sure to read the sections
+//! [_UTF-16LE, UTF-16BE and Unicode Encoding Schemes_](#utf-16le-utf-16be-and-unicode-encoding-schemes),
+//! [_ISO-8859-1_](#iso-8859-1) and [_Web / Browser Focus_](#web--browser-focus) below.
+//!
 //! # Availability
 //!
 //! The code is available under the
@@ -149,6 +153,52 @@
 //! assert_eq!(&output[..], expectation);
 //! assert!(!total_had_errors);
 //! ```
+//!
+//! ## UTF-16LE, UTF-16BE and Unicode Encoding Schemes
+//!
+//! The Encoding Standard doesn't specify encoders for UTF-16LE and UTF-16BE,
+//! __so this crate does not provide encoders for those encodings__!
+//! Along with the replacement encoding, their _output encoding_ is UTF-8,
+//! so you get an UTF-8 encoder if you request an encoder for them.
+//!
+//! Additionally, the Encoding Standard factors BOM handling into wrapper
+//! algorithms so that BOM handling isn't part of the definition of the
+//! encodings themselves. The Unicode _encoding schemes_ in the Unicode
+//! Standard define BOM handling or lack thereof as part of the encoding
+//! scheme.
+//!
+//! When used with the `_without_bom_handling` entry points, the UTF-16LE
+//! and UTF-16BE _encodings_ match the same-named _encoding schemes_ from
+//! the Unicode Standard.
+//!
+//! When used with the `_with_bom_removal` entry points, the UTF-8
+//! _encoding_ matches the UTF-8 _encoding scheme_ from the Unicode
+//! Standard.
+//!
+//! This crate does not provide a mode that matches the UTF-16 _encoding
+//! scheme_ from the Unicode Stardard. The UTF-16BE encoding used with
+//! the entry points without `_bom_` qualifiers is the closest match,
+//! but in that case, the UTF-8 BOM triggers UTF-8 decoding, which is
+//! not part of the behavior of the UTF-16 _encoding scheme_ per the
+//! Unicode Standard.
+//!
+//! The UTF-32 family of Unicode encoding schemes is not supported
+//! by this crate. The Encoding Standard doesn't define any UTF-32
+//! family encodings, since they aren't necessary for consuming Web
+//! content.
+//!
+//! ## ISO-8859-1
+//!
+//! ISO-8859-1 does not exist as a distinct encoding from windows-1252 in
+//! the Encoding Standard. Therefore, an encoding that maps the unsigned
+//! byte value to the same Unicode scalar value is not available via
+//! `Encoding` in this crate.
+//!
+//! However, the functions whose name starts with `convert` and contains
+//! `latin1` in the `mem` module support such conversions, which are known as
+//! [_isomorphic decode_](https://infra.spec.whatwg.org/#isomorphic-decode)
+//! and [_isomorphic encode_](https://infra.spec.whatwg.org/#isomorphic-encode)
+//! in the [Infra Standard](https://infra.spec.whatwg.org/).
 //!
 //! ## Web / Browser Focus
 //!
@@ -494,6 +544,97 @@
 //! <tr><td><code>encoding::EncoderTrap::Call(EncoderTrapFunc)</code></td><td>Can be implemented using <code>encode*</code> methods that have <code>_without_replacement</code> in their name.</td></tr>
 //! </tbody>
 //! </table>
+//!
+//! # Relationship with Windows Code Pages
+//!
+//! Despite the Web and browser focus, the encodings defined by the Encoding
+//! Standard and implemented by this crate may be useful for decoding legacy
+//! data that uses Windows code pages. The following table names the single-byte
+//! encodings
+//! that have a closely related Windows code page, the number of the closest
+//! code page, a column indicating whether Windows maps unassigned code points
+//! to the Unicode Private Use Area instead of U+FFFD and a remark number
+//! indicating remarks in the list after the table.
+//!
+//! <table>
+//! <thead>
+//! <tr><th>Encoding</th><th>Code Page</th><th>PUA</th><th>Remarks</th></tr>
+//! </thead>
+//! <tbody>
+//! <tr><td>IBM866</td><td>866</td><td></td><td></td></tr>
+//! <tr><td>windows-874</td><td>874</td><td>&bullet;</td><td></td></tr>
+//! <tr><td>windows-1250</td><td>1250</td><td></td><td></td></tr>
+//! <tr><td>windows-1251</td><td>1251</td><td></td><td></td></tr>
+//! <tr><td>windows-1252</td><td>1252</td><td></td><td></td></tr>
+//! <tr><td>windows-1253</td><td>1253</td><td>&bullet;</td><td></td></tr>
+//! <tr><td>windows-1254</td><td>1254</td><td></td><td></td></tr>
+//! <tr><td>windows-1255</td><td>1255</td><td>&bullet;</td><td></td></tr>
+//! <tr><td>windows-1256</td><td>1256</td><td></td><td></td></tr>
+//! <tr><td>windows-1257</td><td>1257</td><td>&bullet;</td><td></td></tr>
+//! <tr><td>windows-1258</td><td>1258</td><td></td><td></td></tr>
+//! <tr><td>macintosh</td><td>10000</td><td></td><td>1</td></tr>
+//! <tr><td>x-mac-cyrillic</td><td>10017</td><td></td><td>2</td></tr>
+//! <tr><td>KOI8-R</td><td>20866</td><td></td><td></td></tr>
+//! <tr><td>KOI8-U</td><td>21866</td><td></td><td></td></tr>
+//! <tr><td>ISO-8859-2</td><td>28592</td><td></td><td></td></tr>
+//! <tr><td>ISO-8859-3</td><td>28593</td><td></td><td></td></tr>
+//! <tr><td>ISO-8859-4</td><td>28594</td><td></td><td></td></tr>
+//! <tr><td>ISO-8859-5</td><td>28595</td><td></td><td></td></tr>
+//! <tr><td>ISO-8859-6</td><td>28596</td><td>&bullet;</td><td></td></tr>
+//! <tr><td>ISO-8859-7</td><td>28597</td><td>&bullet;</td><td>3</td></tr>
+//! <tr><td>ISO-8859-8</td><td>28598</td><td>&bullet;</td><td>4</td></tr>
+//! <tr><td>ISO-8859-13</td><td>28603</td><td>&bullet;</td><td></td></tr>
+//! <tr><td>ISO-8859-15</td><td>28605</td><td></td><td></td></tr>
+//! <tr><td>ISO-8859-8-I</td><td>38598</td><td></td><td>5</td></tr>
+//! </tbody>
+//! </table>
+//!
+//! 1. Windows decodes 0xBD to U+2126 OHM SIGN instead of U+03A9 GREEK CAPITAL LETTER OMEGA.
+//! 2. Windows decodes 0xFF to U+00A4 CURRENCY SIGN instead of U+20AC EURO SIGN.
+//! 3. Windows decodes the currency signs at 0xA4 and 0xA5 as well as 0xAA,
+//!    which should be U+037A GREEK YPOGEGRAMMENI, to PUA code points. Windows
+//!    decodes 0xA1 to U+02BD MODIFIER LETTER REVERSED COMMA instead of U+2018
+//!    LEFT SINGLE QUOTATION MARK and 0xA2 to U+02BC MODIFIER LETTER APOSTROPHE
+//!    instead of U+2019 RIGHT SINGLE QUOTATION MARK.
+//! 4. Windows decodes 0xAF to OVERLINE instead of MACRON and 0xFE and 0xFD to PUA instead
+//!    of LRM and RLM.
+//! 5. Remarks from the previous item apply.
+//!
+//! # Notable Differences from IANA Naming
+//!
+//! In some cases, the Encoding Standard specifies the popular unextended encoding
+//! name where in IANA terms one of the other labels would be more precise considering
+//! the extensions that the Encoding Standard has unified into the encoding.
+//!
+//! <table>
+//! <thead>
+//! <tr><th>Encoding</th><th>IANA</th></tr>
+//! </thead>
+//! <tbody>
+//! <tr><td>Big5</td><td>Big5-HKSCS</td></tr>
+//! <tr><td>EUC-KR</td><td>windows-949</td></tr>
+//! <tr><td>Shift_JIS</td><td>windows-31j</td></tr>
+//! <tr><td>x-mac-cyrillic</td><td>x-mac-ukrainian</td></tr>
+//! </tbody>
+//! </table>
+//!
+//! In other cases where the Encoding Standard unifies unextended and extended
+//! variants of an encoding, the encoding gets the name of the extended
+//! variant.
+//!
+//! <table>
+//! <thead>
+//! <tr><th>IANA</th><th>Unified into Encoding</th></tr>
+//! </thead>
+//! <tbody>
+//! <tr><td>ISO-8859-1</td><td>windows-1252</td></tr>
+//! <tr><td>ISO-8859-9</td><td>windows-1254</td></tr>
+//! <tr><td>TIS-620</td><td>windows-874</td></tr>
+//! </tbody>
+//! </table>
+//!
+//! See the section [_UTF-16LE, UTF-16BE and Unicode Encoding Schemes_](#utf-16le-utf-16be-and-unicode-encoding-schemes)
+//! for discussion about the UTF-16 family.
 
 #![cfg_attr(feature = "simd-accel",
             feature(cfg_target_feature, platform_intrinsics, core_intrinsics, stdsimd))]
@@ -3341,11 +3482,11 @@ impl Decoder {
         let (result, read, written, replaced) = self.decode_to_utf8(src, bytes, last);
         let len = bytes.len();
         let mut trail = written;
-        // Non-UTF-8 ASCII-compatible decoders may write up to `STRIDE_SIZE`
+        // Non-UTF-8 ASCII-compatible decoders may write up to `MAX_STRIDE_SIZE`
         // bytes of trailing garbage. No need to optimize non-ASCII-compatible
         // encodings to avoid overwriting here.
         if self.encoding != UTF_8 {
-            let max = std::cmp::min(len, trail + ascii::STRIDE_SIZE);
+            let max = std::cmp::min(len, trail + ascii::MAX_STRIDE_SIZE);
             while trail < max {
                 bytes[trail] = 0;
                 trail += 1;
@@ -3431,11 +3572,11 @@ impl Decoder {
         let (result, read, written) = self.decode_to_utf8_without_replacement(src, bytes, last);
         let len = bytes.len();
         let mut trail = written;
-        // Non-UTF-8 ASCII-compatible decoders may write up to `STRIDE_SIZE`
+        // Non-UTF-8 ASCII-compatible decoders may write up to `MAX_STRIDE_SIZE`
         // bytes of trailing garbage. No need to optimize non-ASCII-compatible
         // encodings to avoid overwriting here.
         if self.encoding != UTF_8 {
-            let max = std::cmp::min(len, trail + ascii::STRIDE_SIZE);
+            let max = std::cmp::min(len, trail + ascii::MAX_STRIDE_SIZE);
             while trail < max {
                 bytes[trail] = 0;
                 trail += 1;
